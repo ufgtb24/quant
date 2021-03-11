@@ -54,16 +54,63 @@ class MaCrossStrategy(bt.Strategy):
         ('fast_length',3),
         ('slow_length',10)
     )
+    
+    def log(self, txt, dt=None):
+        ''' Logging function fot this strategy'''
+        dt = dt or self.datas[0].datetime.date(0)
+        print('%s, %s' % (dt.isoformat(), txt))
+
+    
     def __init__(self):
         ma_fast=bt.ind.SMA(period=self.params.fast_length)
         ma_slow=bt.ind.SMA(period=self.params.slow_length)
         self.crossover=bt.ind.CrossOver(ma_fast,ma_slow)
         
+    def notify_order(self, order):
+        if order.status in [order.Submitted, order.Accepted]:
+            # Buy/Sell order submitted/accepted to/by broker - Nothing to do
+            return
+
+        # Check if an order has been completed
+        # Attention: broker could reject order if not enough cash
+        if order.status in [order.Completed]:
+            if order.isbuy():
+                self.log(
+                    'BUY EXECUTED, Price: %.2f, Cost: %.2f, Comm %.2f' %
+                    (order.executed.price,
+                     order.executed.value,
+                     order.executed.comm))
+
+                self.buyprice = order.executed.price
+                self.buycomm = order.executed.comm
+            else:  # Sell
+                self.log('SELL EXECUTED, Price: %.2f, Cost: %.2f, Comm %.2f' %
+                         (order.executed.price,
+                          order.executed.value,
+                          order.executed.comm))
+
+            self.bar_executed = len(self)
+
+        elif order.status in [order.Canceled, order.Margin, order.Rejected]:
+            self.log('Order Canceled/Margin/Rejected')
+
+        self.order = None
+        
+    def notify_trade(self, trade):
+        if not trade.isclosed:
+            return
+
+        self.log('OPERATION PROFIT, GROSS %.2f, NET %.2f' %
+                 (trade.pnl, trade.pnlcomm))
+
     def next(self):
         if not self.position:
             if self.crossover>0:
+                self.log('BUY CREATE, %.2f' % self.data.close[0])
                 self.buy()
+                
         elif self.crossover<0:
+            self.log('SELL CREATE, %.2f' % self.data.close[0])
             self.close()
         
 if __name__=='__main__':
@@ -71,7 +118,8 @@ if __name__=='__main__':
     
     from yahoo_fin.stock_info import get_data
     # 不能开 VPN   https://algotrading101.com/learn/yahoo-finance-api-guide/
-    df=get_data("NIO", start_date="12/04/2019", end_date="3/04/2021", index_as_date=True, interval="1wk")
+    df=get_data("NIO", start_date="12/04/2019", end_date="3/04/2021",
+                index_as_date=True, interval="1d")
     
     data=bt.feeds.PandasData(dataname=df)
     cerebro=bt.Cerebro()
@@ -82,7 +130,7 @@ if __name__=='__main__':
     cerebro.adddata(data)
 
     #Set cash
-    cerebro.broker.setcash(100000)
+    cerebro.broker.setcash(30000)
     cerebro.broker.setcommission(commission=0.001)
     cerebro.addsizer(bt.sizers.PercentSizer,percents=99)
 
