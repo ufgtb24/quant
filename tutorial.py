@@ -29,7 +29,7 @@ def get_binance_bars(symbol,interval,startTime,endTime):
     df.close=df.close.astype('float')
     df.volume=df.volume.astype('float')
     
-    # 改成 datetime的格式
+    # 将dataframe的时间戳改成 datetime的格式
     df.index=[dt.datetime.fromtimestamp(x/1000.0) for x in df.datetime]
     return df
     
@@ -42,12 +42,12 @@ def get_data():
         if new_df is None:
             break
         df_list.append(new_df)
-        last_datetime=max(new_df.index)+dt.timedelta(0,1)
+        last_datetime=max(new_df.index)+dt.timedelta(0,1) # 多加1秒，就能读到下个交易日
     df=pd.concat(df_list)
     return df
 
-df=get_data()
-# df.head()
+# df=get_data()
+# print(df.shape[0])
 
 class MaCrossStrategy(bt.Strategy):
     params=(
@@ -67,24 +67,29 @@ class MaCrossStrategy(bt.Strategy):
             self.close()
         
 if __name__=='__main__':
-    df=get_data()
+    # df = get_data()
+    
+    from yahoo_fin.stock_info import get_data
+    # 不能开 VPN   https://algotrading101.com/learn/yahoo-finance-api-guide/
+    df=get_data("NIO", start_date="12/04/2019", end_date="3/04/2021", index_as_date=True, interval="1wk")
+    
     data=bt.feeds.PandasData(dataname=df)
     cerebro=bt.Cerebro()
     # Add a strategy
     cerebro.addstrategy(MaCrossStrategy)
-    
+
     #Add data
     cerebro.adddata(data)
-    
+
     #Set cash
     cerebro.broker.setcash(100000)
     cerebro.broker.setcommission(commission=0.001)
     cerebro.addsizer(bt.sizers.PercentSizer,percents=99)
-    
+
     #Run
     print('start portfolio value {}'.format(cerebro.broker.getvalue()))
     cerebro.run()
     print('end portfolio value {}'.format(cerebro.broker.getvalue()))
-    
+
     #Plot
     cerebro.plot(style='candle')
