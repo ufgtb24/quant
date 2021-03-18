@@ -1,24 +1,23 @@
 import backtrader as bt
+import backtrader.indicator as btind
+from Ind.RVI import RVI
 
 
-
-class MaCrossStrategy(bt.Strategy):
+class UseRVI(bt.Strategy):
     params = (
-        ('fast_length', 21),
-        ('slow_length', 70)
+        ('up', 60),
+        ('low', 35)
     )
-    
+    lines=()
     def log(self, txt, dt=None):
         ''' Logging function fot this strategy'''
         dt = dt or self.datas[0].datetime.date(0)
         print('%s, %s' % (dt.isoformat(), txt))
     
     def __init__(self):
-        ma_fast = bt.ind.SMA(period=self.params.fast_length)
-        ma_slow = bt.ind.SMA(period=self.params.slow_length)
-        self.crossover = bt.ind.CrossOver(ma_fast, ma_slow)
-
-
+        self.rvi = RVI(movav=bt.ind.EMA)
+        
+        
         
     
     def notify_order(self, order):

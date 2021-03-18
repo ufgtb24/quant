@@ -155,10 +155,10 @@ if __name__ == '__main__':
     # Run over everything
     backs=cerebro.run()
     print('Final Portfolio Value: %.2f' % cerebro.broker.getvalue())
-    ratio_list=[[x.analyzers.myreturns.get_analysis()['rtot'],
-                 x.analyzers.myreturns.get_analysis()['rnorm100'],
-                 x.analyzers.mydrawdown.get_analysis()['max']['drawdown'],
-                 x.analyzers.mysharpe.get_analysis()['sharperatio'],
+    ratio_list=[[x.analyzers.myreturns.get_analysis()['rtot']*100,  # 总收益比例
+                 x.analyzers.myreturns.get_analysis()['rnorm100'],  # 年化收益比例
+                 x.analyzers.mydrawdown.get_analysis()['max']['drawdown'], # 最大回撤比例
+                 x.analyzers.mysharpe.get_analysis()['sharperatio'],  # 夏普比率
                  ]for x in backs]
     ratio_df=pd.DataFrame(ratio_list,columns=['Total_return','APR','DrawDown','Shapre_ratio'])
     print(ratio_df)
