@@ -2,9 +2,10 @@
 import backtrader as bt
 import backtrader.analyzers as btanalyzers
 import pandas as pd
-import datetime as dt
-# Create a Stratey
+# import quantstats
+
 from Data_ops.data_A import aquire_CN
+from Strategies.RVI_strategy import RVI_stg
 from tutorial import MaCrossStrategy
 
 
@@ -103,8 +104,10 @@ if __name__ == '__main__':
     cerebro = bt.Cerebro()
 
     # Add a strategy
-    cerebro.addstrategy(MaCrossStrategy)
-
+    cerebro.addstrategy(RVI_stg)
+    stock='ANNX'
+    # stock='002600.SZ'
+    
     #### load CSV
     # data = bt.feeds.YahooFinanceCSVData(
     #     dataname='datas/IVR.csv',
@@ -117,7 +120,7 @@ if __name__ == '__main__':
     ######### US    # 不能开 VPN   https://algotrading101.com/learn/yahoo-finance-api-guide/
 
     from yahoo_fin.stock_info import get_data
-    df = get_data("NIO", start_date="3/04/2019", end_date="3/04/2021", index_as_date=True, interval="1d")
+    df = get_data(stock, start_date="3/04/2019", end_date="3/04/2021", index_as_date=True, interval="1d")
     data = bt.feeds.PandasData(dataname=df)
 
     
@@ -143,6 +146,7 @@ if __name__ == '__main__':
     cerebro.addanalyzer(btanalyzers.SharpeRatio, _name='mysharpe')
     cerebro.addanalyzer(btanalyzers.DrawDown, _name='mydrawdown')
     cerebro.addanalyzer(btanalyzers.Returns, _name='myreturns')
+    # cerebro.addanalyzer(btanalyzers.Returns, _name='PyFolio')
     
     
     
@@ -163,7 +167,10 @@ if __name__ == '__main__':
     ratio_df=pd.DataFrame(ratio_list,columns=['Total_return','APR','DrawDown','Shapre_ratio'])
     print(ratio_df)
     # Print out the final result
-    
+    # pyfolio_stats=backs[0].analyzers.getbyname('PyFolio')
+    # returns,positions,transactions,gross_lev=pyfolio_stats.get_pf.items()
+    # returns.index=returns.index.tz_convert(None)
+    # quantstats.reports.html(returns,output='results/%s result.html'%(stock),title=stock+'analysis')
     
     
     #Plot

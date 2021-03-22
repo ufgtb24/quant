@@ -6,10 +6,10 @@ import backtrader.indicator as btind
 from Ind.RVI import RVI
 
 
-class UseRVI(bt.Strategy):
+class RVI_stg(bt.Strategy):
     params = (
-        ('up', 60),
-        ('low', 35)
+        ('rvi_low', 50),
+        ('sma_period', 5)
     )
     lines=()
     def log(self, txt, dt=None):
@@ -19,6 +19,10 @@ class UseRVI(bt.Strategy):
     
     def __init__(self):
         self.rvi = RVI(movav=bt.ind.EMA)
+        ma = bt.ind.SMA(period=self.params.sma_period)
+        
+        self.crossover = bt.ind.CrossOver(self.data.close, ma)
+
         
         
     def notify_order(self, order):
@@ -35,7 +39,7 @@ class UseRVI(bt.Strategy):
                     (order.executed.price,
                      order.executed.value,
                      order.executed.comm))
-                
+                self.sell(exectype=bt.Order.StopTrail, trailpercent=0.1)
                 self.buyprice = order.executed.price
                 self.buycomm = order.executed.comm
             else:  # Sell
@@ -59,12 +63,13 @@ class UseRVI(bt.Strategy):
                  (trade.pnl, trade.pnlcomm))
     
     def next(self):
-        size_buy=math.floor()
+        size_buy=math.floor(self.broker.get_cash()/self.data.close[0])
         if not self.position:
-            if self.rvi.rvi[0] > self.p.up:
-                self.log('BUY CREATE, %.2f' % self.data.close[0])
-                self.buy()
+            if self.rvi.rvi[0] < self.p.rvi_low:
+                if self.rvi.rvi[0]>self.rvi.rvi[-1] and self.rvi.rvi[-1]>self.rvi.rvi[-2]:
+                    self.log('BUY CREATE, %.2f' % self.data.close[0])
+                    self.buy()
         
-        elif self.crossover < 0:
+        elif self.crossover == -1:
             self.log('SELL CREATE, %.2f' % self.data.close[0])
             self.close()
