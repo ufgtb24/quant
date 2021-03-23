@@ -3,7 +3,9 @@ import backtrader as bt
 class RVI(bt.Indicator):
     lines = ('rvi','upDaySTD','downDaySTD')
     params = (('period', 14),
-    ('movav', bt.ind.MovAv.Smoothed),
+    # ('movav', bt.talib.EMA),
+    ('movav', bt.indicators.EMA),
+    # ('movav', bt.ind.MovAv.Smoothed),
     ('upperband', 70.0),
     ('lowerband', 30.0),
     ('safehigh', 100.0),
