@@ -6,8 +6,8 @@ class Keltler(bt.Indicator):
     params = (
         ('ema_period', 20),
         ('atr_period', 17),
-        ('up_rate',1),
-        ('low_rate',1)
+        ('up_rate',2),
+        ('low_rate',2)
     )
 
     plotinfo = dict(subplot=False)
@@ -51,6 +51,7 @@ class Keltler_strategy(bt.Strategy):
                      order.executed.value,
                      order.executed.comm))
                 
+                self.sell(exectype=bt.Order.StopTrail, trailpercent=0.1)
                 self.buyprice = order.executed.price
                 self.buycomm = order.executed.comm
             else:  # Sell

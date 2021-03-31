@@ -15,7 +15,7 @@ from tutorial import MaCrossStrategy
 # Create a cerebro entity
 cerebro = bt.Cerebro()
 
-stock='ANNX'
+stock='CUTR'
 # stock='002600.SZ'
 
 #### load CSV
