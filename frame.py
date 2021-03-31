@@ -1,6 +1,7 @@
 # Import the backtrader platform
 import backtrader as bt
 import backtrader.analyzers as btanalyzers
+import matplotlib
 import pandas as pd
 # import quantstats
 
@@ -87,4 +88,7 @@ print(ratio_df)
 
 
 #Plot
+
+
+matplotlib.rcParams['figure.dpi'] = 200
 cerebro.plot(style='candle')
