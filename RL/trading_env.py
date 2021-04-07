@@ -168,25 +168,28 @@ class TradingSimulator:
         self.market_returns[self.step] = market_return
         self.actions[self.step] = action
 
-        end_position = action - 1  # short, neutral, long
+        end_position = action - 1  # short, neutral, long  最多为1 最小为-1
         n_trades = end_position - start_position
-        self.positions[self.step] = end_position
+        self.positions[self.step] = end_position  # 只有三种可能 -1 0 1
         self.trades[self.step] = n_trades
 
         # roughly value based since starting NAV = 1
         trade_costs = abs(n_trades) * self.trading_cost_bps
         time_cost = 0 if n_trades else self.time_cost_bps
         self.costs[self.step] = trade_costs + time_cost
-        reward = start_position * market_return - self.costs[self.step]
+        reward = start_position * market_return - self.costs[self.step]  # 之前策略在今天的效果
         self.strategy_returns[self.step] = reward
 
         if self.step != 0:
-            self.navs[self.step] = start_nav * (1 + self.strategy_returns[self.step])
-            self.market_navs[self.step] = start_market_nav * (1 + self.market_returns[self.step])
+            # 策略的性能
+            self.navs[self.step] = start_nav * (1 + self.strategy_returns[self.step])  # 针对一单位的操作
+            # 拿着不动
+            self.market_navs[self.step] = start_market_nav * (1 + self.market_returns[self.step])  # 针对一单位的操作
 
         info = {'reward': reward,
                 'nav'   : self.navs[self.step],
                 'costs' : self.costs[self.step]}
+        
 
         self.step += 1
         return reward, info
