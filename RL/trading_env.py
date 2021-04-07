@@ -84,7 +84,7 @@ class DataSource:
     def preprocess_data(self):
         """calculate returns and percentiles, then removes missing values"""
 
-        self.data['returns'] = self.data.close.pct_change()
+        self.data['returns'] = self.data.close.pct_change() #会产生 Nan
         self.data['ret_2'] = self.data.close.pct_change(2)
         self.data['ret_5'] = self.data.close.pct_change(5)
         self.data['ret_10'] = self.data.close.pct_change(10)
@@ -100,7 +100,7 @@ class DataSource:
         self.data['ultosc'] = talib.ULTOSC(self.data.high, self.data.low, self.data.close)
         self.data = (self.data.replace((np.inf, -np.inf), np.nan)
                      .drop(['high', 'low', 'close', 'volume'], axis=1)
-                     .dropna())
+                     .dropna()) # 把 pct_change 产生的 NaN 去掉
 
         r = self.data.returns.copy()
         if self.normalize:
@@ -161,6 +161,8 @@ class TradingSimulator:
         """ Calculates NAVs, trading costs and reward
             based on an action and latest market return
             and returns the reward and a summary of the day's activity. """
+        
+        # market_return 是当日涨幅
 
         start_position = self.positions[max(0, self.step - 1)]
         start_nav = self.navs[max(0, self.step - 1)]
@@ -254,7 +256,7 @@ class TradingEnvironment(gym.Env):
     def step(self, action):
         """Returns state observation, reward, done and info"""
         assert self.action_space.contains(action), '{} {} invalid'.format(action, type(action))
-        observation, done = self.data_source.take_step()
+        observation, done = self.data_source.take_step() # 走数据，和action无关
         reward, info = self.simulator.take_step(action=action,
                                                 market_return=observation[0])
         return observation, reward, done, info
