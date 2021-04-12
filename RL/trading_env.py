@@ -68,7 +68,7 @@ class DataSource:
         self.step = 0
         self.offset = None
 
-    def load_data(self):
+    def load_data2(self):
         log.info('loading data for {}...'.format(self.ticker))
         idx = pd.IndexSlice
         with pd.HDFStore('../data/assets.h5') as store:
@@ -79,6 +79,13 @@ class DataSource:
                   .sort_index())
         df.columns = ['close', 'volume', 'low', 'high']
         log.info('got data for {}...'.format(self.ticker))
+        return df
+    
+    def load_data(self):
+        from yahoo_fin.stock_info import get_data
+        df = get_data(self.ticker, start_date="3/04/2019", end_date="3/04/2021", index_as_date=True, interval="1d")
+        df = df[['close', 'volume', 'low','high' ]]
+        # df.columns = ['close', 'volume','low','high' ]
         return df
 
     def preprocess_data(self):
