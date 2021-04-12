@@ -62,9 +62,9 @@ class DataSource:
         self.trading_days = trading_days
         self.normalize = normalize
         self.data = self.load_data()
-        self.preprocess_data()
+        self.preprocess_data() # 从low high close volume 转换成 Indicator
         self.min_values = self.data.min()
-        self.max_values = self.data.max()
+        self.max_values = self.data.max() # 各 columns 的最大值
         self.step = 0
         self.offset = None
 
@@ -111,9 +111,10 @@ class DataSource:
 
         r = self.data.returns.copy()
         if self.normalize:
-            self.data = pd.DataFrame(scale(self.data),
+            self.data = pd.DataFrame(scale(self.data), # 每个 column 关于时间独立标准化
                                      columns=self.data.columns,
                                      index=self.data.index)
+        # 这里是 columns 的 drop 不是 df 的 drop
         features = self.data.columns.drop('returns')
         self.data['returns'] = r  # don't scale returns
         self.data = self.data.loc[:, ['returns'] + list(features)]
@@ -122,7 +123,7 @@ class DataSource:
     def reset(self):
         """Provides starting index for time series and resets step"""
         high = len(self.data.index) - self.trading_days
-        self.offset = np.random.randint(low=0, high=high)
+        self.offset = np.random.randint(low=0, high=high) # 采样区间的起点是随机的，长度是固定的 252
         self.step = 0
 
     def take_step(self):
@@ -252,6 +253,7 @@ class TradingEnvironment(gym.Env):
                                           trading_cost_bps=self.trading_cost_bps,
                                           time_cost_bps=self.time_cost_bps)
         self.action_space = spaces.Discrete(3)
+        #
         self.observation_space = spaces.Box(self.data_source.min_values,
                                             self.data_source.max_values)
         self.reset()

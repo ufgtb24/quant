@@ -1,4 +1,6 @@
-import datetime as dt
-
-t=dt.datetime(2021,3,1)+dt.timedelta(0,1)
-d=t.date(0)
+import gym
+env = gym.make('CartPole-v0')
+print(env.action_space)
+#> Discrete(2)
+print(env.observation_space)
+#> Box(4,)

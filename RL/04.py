@@ -361,7 +361,7 @@ def track_results(episode, nav_ma_100, nav_ma_10,
 start = time()
 results = []
 for episode in range(1, max_episodes + 1):
-    this_state = trading_environment.reset()
+    this_state = trading_environment.reset()  # 每个指标关于时间独立标准化
     for episode_step in range(max_episode_steps):
         action = ddqn.epsilon_greedy_policy(this_state.reshape(-1, state_dim))
         next_state, reward, done, _ = trading_environment.step(action)
