@@ -187,13 +187,13 @@ class TradingSimulator:
         trade_costs = abs(n_trades) * self.trading_cost_bps
         time_cost = 0 if n_trades else self.time_cost_bps
         self.costs[self.step] = trade_costs + time_cost
-        reward = start_position * market_return - self.costs[self.step]  # 之前策略在今天的效果
+        reward = start_position * market_return - self.costs[self.step]  # 上个step策略在今天的效果
         self.strategy_returns[self.step] = reward
 
         if self.step != 0:
-            # 策略的性能
+            # 当前时刻的净资产，反应策略的性能   strategy_returns 是变化率， (1+变化率)*净资产(navs 初始值为1)
             self.navs[self.step] = start_nav * (1 + self.strategy_returns[self.step])  # 针对一单位的操作
-            # 拿着不动
+            # 拿着不动时，当前时刻的净资产，反应策略的性能
             self.market_navs[self.step] = start_market_nav * (1 + self.market_returns[self.step])  # 针对一单位的操作
 
         info = {'reward': reward,
@@ -266,8 +266,10 @@ class TradingEnvironment(gym.Env):
         """Returns state observation, reward, done and info"""
         assert self.action_space.contains(action), '{} {} invalid'.format(action, type(action))
         observation, done = self.data_source.take_step() # 走数据，和action无关
+        # 客观数据叠加策略的收益，reward 是当日收益
         reward, info = self.simulator.take_step(action=action,
-                                                market_return=observation[0])
+                                                market_return=observation[0]) # 当日涨跌幅
+        # observation 是多日涨幅 加 各种指标， reward 是之前策略的当日收益
         return observation, reward, done, info
 
     def reset(self):

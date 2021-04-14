@@ -220,11 +220,13 @@ class DDQNAgent:
         if self.batch_size > len(self.experience):
             return
         minibatch = map(np.array, zip(*sample(self.experience, self.batch_size)))
+        # 回放不需要采样，存储才需要采样，因此不涉及 epsilon
         states, actions, rewards, next_states, not_done = minibatch  # epsilon 算出的 action
-        
+        # 用当前 Q 选择 action
         next_q_values = self.online_network.predict_on_batch(next_states)
+        # 不传递梯度
         best_actions = tf.argmax(next_q_values, axis=1)
-        
+        # target_network 只负责生成Q，不负责选择最优action
         next_q_values_target = self.target_network.predict_on_batch(next_states)
         target_q_values = tf.gather_nd(next_q_values_target,
                                        tf.stack((self.idx, tf.cast(best_actions, tf.int32)), axis=1))
@@ -232,12 +234,13 @@ class DDQNAgent:
         targets = rewards + not_done * self.gamma * target_q_values
         
         q_values = self.online_network.predict_on_batch(states)
-        q_values[[self.idx, actions]] = targets  # 花式索引赋值：只有本次的批采样出的 action 才会被更新
+        # actions 是用 epsilon 选出的
+        q_values[[self.idx, actions]] = targets  # [B,A]花式索引赋值：只有本次的批采样出的 action 才会被更新
         # online_network(Q-network) 输入是state维度的，输出是 action 维度的
         loss = self.online_network.train_on_batch(x=states, y=q_values)
         self.losses.append(loss)
         
-        if self.total_steps % self.tau == 0:
+        if self.total_steps % self.tau == 0:  #为了增加稳定性，不会每轮更新
             self.update_target()
 
 
@@ -362,17 +365,19 @@ start = time()
 results = []
 for episode in range(1, max_episodes + 1):
     this_state = trading_environment.reset()  # 每个指标关于时间独立标准化
-    for episode_step in range(max_episode_steps):
+    for episode_step in range(max_episode_steps): # 252
+        # 步长累加
         action = ddqn.epsilon_greedy_policy(this_state.reshape(-1, state_dim))
+        # next_state 与 action 无关，reward 与 action有关
         next_state, reward, done, _ = trading_environment.step(action)
-        
+        # 保存路径到 池子 中
         ddqn.memorize_transition(this_state,
                                  action,
                                  reward,
                                  next_state,
                                  0.0 if done else 1.0)
         if ddqn.train:
-            ddqn.experience_replay()
+            ddqn.experience_replay() # 回放数据训练
         if done:
             break
         this_state = next_state
@@ -391,7 +396,7 @@ for episode in range(1, max_episodes + 1):
     market_nav = final.market_nav
     market_navs.append(market_nav)
     
-    # track difference between agent an market NAV results
+    # track difference between agent and market NAV results
     diff = nav - market_nav
     diffs.append(diff)
     
@@ -406,6 +411,7 @@ for episode in range(1, max_episodes + 1):
                       np.sum([s > 0 for s in diffs[-100:]]) / min(len(diffs), 100),
                       time() - start, ddqn.epsilon)
     if len(diffs) > 25 and all([r > 0 for r in diffs[-25:]]):
+        # 连续25个交易日跑赢死拿，就结束
         print(result.tail())
         break
 
