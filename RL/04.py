@@ -323,14 +323,14 @@ ddqn.online_network.summary()
 
 total_steps = 0
 # max_episodes = 1000
-max_episodes = 200
+max_episodes = 2000
 
 # %% md
 
 ### Initialize variables
 
 # %%
-
+# 所有 episode 的综合统计
 episode_time, navs, market_navs, diffs, episode_eps = [], [], [], [], []
 
 
@@ -368,7 +368,7 @@ for episode in range(1, max_episodes + 1):
     for episode_step in range(max_episode_steps): # 252
         # 步长累加
         action = ddqn.epsilon_greedy_policy(this_state.reshape(-1, state_dim))
-        # next_state 与 action 无关，reward 与 action有关
+        # next_state 与 action 无关，reward 与 前一个step的 action有关
         next_state, reward, done, _ = trading_environment.step(action)
         # 保存路径到 池子 中
         ddqn.memorize_transition(this_state,
