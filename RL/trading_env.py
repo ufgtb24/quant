@@ -103,7 +103,6 @@ class DataSource:
         # https://analyzingalpha.com/stochastic-oscillator
         slowk, slowd = talib.STOCH(self.data.high, self.data.low, self.data.close)
         self.data['stoch'] = slowd - slowk
-        self.data['atr'] = talib.ATR(self.data.high, self.data.low, self.data.close)
         self.data['ultosc'] = talib.ULTOSC(self.data.high, self.data.low, self.data.close)
         self.data = (self.data.replace((np.inf, -np.inf), np.nan)
                      .drop(['high', 'low', 'close', 'volume'], axis=1)
