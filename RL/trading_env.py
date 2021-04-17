@@ -83,7 +83,7 @@ class DataSource:
     
     def load_data(self):
         from yahoo_fin.stock_info import get_data
-        df = get_data(self.ticker, start_date="3/04/2019", end_date="3/04/2021", index_as_date=True, interval="1d")
+        df = get_data(self.ticker, start_date="3/04/2010", end_date="3/04/2021", index_as_date=True, interval="1d")
         df = df[['close', 'volume', 'low','high' ]]
         # df.columns = ['close', 'volume','low','high' ]
         return df

@@ -25,6 +25,7 @@ from tensorflow.keras.regularizers import l2
 
 import gym
 from gym.envs.registration import register
+keras = tf.keras
 
 # %% md
 
@@ -132,6 +133,7 @@ class DDQNAgent:
                  epsilon_decay_steps,
                  epsilon_exponential_decay,
                  replay_capacity,
+                 load_path,
                  architecture,
                  l2_reg,
                  tau,
@@ -145,9 +147,8 @@ class DDQNAgent:
         self.gamma = gamma
         self.architecture = architecture
         self.l2_reg = l2_reg
-        
-        self.online_network = self.build_model()
-        self.target_network = self.build_model(trainable=False)
+        self.online_network = self.build_model(load_path=load_path)
+        self.target_network = self.build_model(trainable=False,load_path=load_path)
         self.update_target()
         
         self.epsilon = epsilon_start
@@ -167,8 +168,12 @@ class DDQNAgent:
         self.losses = []
         self.idx = tf.range(batch_size)
         self.train = True
+    def save_model(self,save_path):
+        self.online_network.save(save_path)
     
-    def build_model(self, trainable=True):
+    def build_model(self, trainable=True,load_path=None):
+        if load_path is not None:
+            return keras.models.load_model("../ckpt")
         layers = []
         n = len(self.architecture)
         for i, units in enumerate(self.architecture, 1):
@@ -258,7 +263,8 @@ tau = 100  # target network update frequency
 ### NN Architecture
 
 # %%
-
+# load_path='../ckpt'
+load_path=None
 architecture = (256, 256)  # units per layer
 learning_rate = 0.0001  # learning rate
 l2_reg = 1e-6  # L2 regularization
@@ -302,6 +308,7 @@ ddqn = DDQNAgent(state_dim=state_dim,
                  epsilon_decay_steps=epsilon_decay_steps,
                  epsilon_exponential_decay=epsilon_exponential_decay,
                  replay_capacity=replay_capacity,
+                 load_path=load_path,
                  architecture=architecture,
                  l2_reg=l2_reg,
                  tau=tau,
@@ -410,6 +417,7 @@ for episode in range(1, max_episodes + 1):
                       # share of agent wins, defined as higher ending nav
                       np.sum([s > 0 for s in diffs[-100:]]) / min(len(diffs), 100),
                       time() - start, ddqn.epsilon)
+        ddqn.save_model('../ckpt')
     if len(diffs) > 25 and all([r > 0 for r in diffs[-25:]]):
         # 连续25个交易日跑赢死拿，就结束
         print(result.tail())
