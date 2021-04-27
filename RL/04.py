@@ -147,6 +147,7 @@ class DDQNAgent:
         self.gamma = gamma
         self.architecture = architecture
         self.l2_reg = l2_reg
+        # DQN 的两个网络  在文档中搜索 double Q learning 里面讲述了 两个网络的作用
         self.online_network = self.build_model(load_path=load_path)
         self.target_network = self.build_model(trainable=False,load_path=load_path)
         self.update_target()
@@ -227,11 +228,9 @@ class DDQNAgent:
         minibatch = map(np.array, zip(*sample(self.experience, self.batch_size)))
         # 回放不需要采样，存储才需要采样，因此不涉及 epsilon
         states, actions, rewards, next_states, not_done = minibatch  # epsilon 算出的 action
-        # 用当前 Q 选择 action
+        # DQN 的两个网络
         next_q_values = self.online_network.predict_on_batch(next_states)
-        # 不传递梯度
         best_actions = tf.argmax(next_q_values, axis=1)
-        # target_network 只负责生成Q，不负责选择最优action
         next_q_values_target = self.target_network.predict_on_batch(next_states)
         target_q_values = tf.gather_nd(next_q_values_target,
                                        tf.stack((self.idx, tf.cast(best_actions, tf.int32)), axis=1))
