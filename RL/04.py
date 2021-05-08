@@ -171,7 +171,9 @@ class DDQNAgent:
         self.train = True
     def save_model(self,save_path):
         self.online_network.save(save_path)
-    
+
+
+
     def build_model(self, trainable=True,load_path=None):
         if load_path is not None:
             return keras.models.load_model("../ckpt")
@@ -228,7 +230,7 @@ class DDQNAgent:
         minibatch = map(np.array, zip(*sample(self.experience, self.batch_size)))
         # 回放不需要采样，存储才需要采样，因此不涉及 epsilon
         states, actions, rewards, next_states, not_done = minibatch  # epsilon 算出的 action
-        # DQN 的两个网络
+        # double Q-learning
         next_q_values = self.online_network.predict_on_batch(next_states)
         best_actions = tf.argmax(next_q_values, axis=1)
         next_q_values_target = self.target_network.predict_on_batch(next_states)
