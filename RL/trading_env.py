@@ -24,6 +24,7 @@ SOFTWARE.
 """
 
 import logging
+import os
 import tempfile
 
 import gym
@@ -82,10 +83,14 @@ class DataSource:
         return df
     
     def load_data(self):
-        from yahoo_fin.stock_info import get_data
-        df = get_data(self.ticker, start_date="3/04/2007", end_date="3/04/2021", index_as_date=True, interval="1d")
-        df = df[['close', 'volume', 'low','high' ]]
-        # df.columns = ['close', 'volume','low','high' ]
+        if os.path.exists('./data/' + self.ticker + '.csv'):
+            df = pd.read_csv('./data/' + self.ticker + '.csv')
+        else:
+            from yahoo_fin.stock_info import get_data
+            
+            df = get_data(self.ticker, start_date="3/04/2007", end_date="3/04/2021", index_as_date=True, interval="1d")
+            df = df[['close', 'volume', 'low','high' ]]
+            df.to_csv('./data/' + self.ticker + '.csv', index=False)
         return df
 
     def preprocess_data(self):

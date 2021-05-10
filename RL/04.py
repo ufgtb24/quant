@@ -169,9 +169,9 @@ class DDQNAgent:
         self.losses = []
         self.idx = tf.range(batch_size)
         self.train = True
+        
     def save_model(self,save_path):
         self.online_network.save(save_path)
-
 
 
     def build_model(self, trainable=True,load_path=None):
