@@ -82,17 +82,17 @@ class DataSource:
         log.info('got data for {}...'.format(self.ticker))
         return df
     
-    def load_data(self,need_save=True):
-        if os.path.exists('./days/' + self.ticker + '.csv'):
-            df = pd.read_csv('./days/' + self.ticker + '.csv')
+    def load_data(self):
+        if os.path.exists('./data/' + self.ticker + '.csv'):
+            df = pd.read_csv('./data/' + self.ticker + '.csv')
         else:
             from yahoo_fin.stock_info import get_data
+            
             df = get_data(self.ticker, start_date="3/04/2007", end_date="3/04/2021", index_as_date=True, interval="1d")
             df = df[['close', 'volume', 'low','high' ]]
-            if need_save:
-                df.to_csv('./days/' + self.ticker + '.csv', index=False)
+            df.to_csv('./data/' + self.ticker + '.csv', index=False)
         return df
-    
+
     def preprocess_data(self):
         """calculate returns and percentiles, then removes missing values"""
 
