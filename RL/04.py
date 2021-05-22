@@ -147,7 +147,7 @@ class DDQNAgent:
         self.gamma = gamma
         self.architecture = architecture
         self.l2_reg = l2_reg
-        # DQN 的两个网络  在文档中搜索 double Q learning 里面讲述了 两个网络的作用
+        # double Q learning 里面讲述了 两个网络的作用
         self.online_network = self.build_model(load_path=load_path)
         self.target_network = self.build_model(trainable=False,load_path=load_path)
         self.update_target()

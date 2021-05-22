@@ -8,7 +8,8 @@ Created on Fri Mar 28 2018
 atari breakout drqn
 """
 
-from keras.layers.convolutional import Conv2D
+
+from tensorflow.keras.layers.convolutional import Conv2D
 
 from keras.layers import Dense, Flatten, LSTM, TimeDistributed
 
