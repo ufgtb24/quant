@@ -123,6 +123,47 @@ class DataSource:
         self.data['returns'] = r  # don't scale returns
         self.data = self.data.loc[:, ['returns'] + list(features)]
         log.info(self.data.info())
+        
+    def compress_data(self,unite_size):
+        data=self.data.close.values()
+        data_num=len(data)
+        redundent_num=data_num%data_num
+        data=data[redundent_num:]
+        data=np.mean(np.reshape(data,[-1,unite_size]),axis=1)
+        print(data.shape)
+        return data,redundent_num
+        
+        
+    def preprocess_data1(self):
+        """calculate returns and percentiles, then removes missing values"""
+
+        self.data['returns'] = self.data.close.pct_change() #会产生 Nan
+        self.data['ret_2'] = self.data.close.pct_change(2)
+        self.data['ret_5'] = self.data.close.pct_change(5)
+        self.data['ret_10'] = self.data.close.pct_change(10)
+        self.data['ret_21'] = self.data.close.pct_change(21)
+        self.data['rsi'] = talib.STOCHRSI(self.data.close)[1] #股价的二阶导
+        self.data['macd'] = talib.MACD(self.data.close)[1]
+        self.data['atr'] = talib.ATR(self.data.high, self.data.low, self.data.close)
+        
+        # https://analyzingalpha.com/stochastic-oscillator
+        slowk, slowd = talib.STOCH(self.data.high, self.data.low, self.data.close)
+        self.data['stoch'] = slowd - slowk
+        self.data['ultosc'] = talib.ULTOSC(self.data.high, self.data.low, self.data.close)
+        self.data = (self.data.replace((np.inf, -np.inf), np.nan)
+                     .drop(['high', 'low', 'close', 'volume'], axis=1)
+                     .dropna()) # 把 pct_change 产生的 NaN 去掉
+
+        r = self.data.returns.copy()
+        if self.normalize:
+            self.data = pd.DataFrame(scale(self.data), # 每个 column 关于时间独立标准化
+                                     columns=self.data.columns,
+                                     index=self.data.index)
+        # 这里是 columns 的 drop 不是 df 的 drop
+        features = self.data.columns.drop('returns')
+        self.data['returns'] = r  # don't scale returns
+        self.data = self.data.loc[:, ['returns'] + list(features)]
+        log.info(self.data.info())
 
     def reset(self):
         """Provides starting index for time series and resets step"""

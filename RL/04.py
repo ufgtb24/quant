@@ -19,7 +19,7 @@ import seaborn as sns
 
 import tensorflow as tf
 from tensorflow.keras import Sequential
-from tensorflow.keras.layers import Dense, Dropout
+from tensorflow.keras.layers import Dense, Dropout,GRU
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.regularizers import l2
 
@@ -174,7 +174,40 @@ class DDQNAgent:
         self.online_network.save(save_path)
 
 
-    def build_model(self, trainable=True,load_path=None):
+    def build_model1(self, trainable=True,load_path=None):
+        
+        
+        if load_path is not None:
+            return keras.models.load_model("../ckpt")
+        
+        model = Sequential()
+        model.add(GRU(128))
+        model.add(GRU(128))
+
+        model.summary()
+
+        
+        layers = []
+
+        
+        n = len(self.architecture)
+        for i, units in enumerate(self.architecture, 1):
+            layers.append(Dense(units=units,
+                                input_dim=self.state_dim if i == 1 else None,
+                                activation='relu',
+                                kernel_regularizer=l2(self.l2_reg),
+                                name=f'Dense_{i}',
+                                trainable=trainable))
+        layers.append(Dropout(.1))
+        layers.append(Dense(units=self.num_actions,
+                            trainable=trainable,
+                            name='Output'))
+        model = Sequential(layers)
+        model.compile(loss='mean_squared_error',
+                      optimizer=Adam(lr=self.learning_rate))
+        return model
+    
+def build_model(self, trainable=True,load_path=None):
         if load_path is not None:
             return keras.models.load_model("../ckpt")
         layers = []
