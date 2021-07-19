@@ -4,8 +4,7 @@ import backtrader.analyzers as btanalyzers
 import matplotlib
 import pandas as pd
 # import quantstats
-
-from Data_ops.data_A import aquire_CN
+from Strategies import RVI_strategy
 from Strategies.Ketler_stg import Keltler_strategy
 from Strategies.MFI_stg import MFI_strategy
 from Strategies.RVI_strategy import RVI_stg
@@ -31,7 +30,7 @@ stock='CUTR'
 ######### US    # 不能开 VPN   https://algotrading101.com/learn/yahoo-finance-api-guide/
 
 from yahoo_fin.stock_info import get_data
-df = get_data(stock, start_date="3/04/2019", end_date="3/04/2021", index_as_date=True, interval="1d")
+df = get_data(stock, start_date="3/04/2021", end_date="3/04/2021", index_as_date=True, interval="1d")
 data = bt.feeds.PandasData(dataname=df)
 
 
@@ -47,7 +46,7 @@ data = bt.feeds.PandasData(dataname=df)
 cerebro.adddata(data)
 
 # Add a strategy
-cerebro.addstrategy(Keltler_strategy)
+cerebro.addstrategy(RVI_stg)
 
 # Set our desired cash start
 cerebro.broker.setcash(12000.0)
@@ -90,5 +89,5 @@ print(ratio_df)
 #Plot
 
 
-matplotlib.rcParams['figure.dpi'] = 200
+# matplotlib.rcParams['figure.dpi'] = 200
 cerebro.plot(style='candle')

@@ -9,7 +9,7 @@ from Ind.RVI import RVI
 class RVI_stg(bt.Strategy):
     params = (
         ('rvi_low', 50),
-        ('sma_period', 5)
+        ('sma_period', 20)
     )
     lines=()
     def log(self, txt, dt=None):

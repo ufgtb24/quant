@@ -7,9 +7,9 @@ loc 索引是 先 row 后 column
 
 '''
 
-a=np.arange(1,10).reshape(3,3)
-b=pd.DataFrame(a,index=[0,1,2],columns=['A','B','C'])
-c=b.columns.drop('A')
-print(b.values)
-print(c)
+a=np.arange(0,30).reshape(10,3)
+b=pd.DataFrame(a,index=range(10),columns=['A','B','C'])
+print(b)
+print(b.A.pct_change())
+# print(round(b['A'].rolling(window=2).mean(), 2))
 
